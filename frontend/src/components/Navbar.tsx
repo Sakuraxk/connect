@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Palette, Home, Sparkles, Users, Box, ChevronDown, Check } from 'lucide-react';
+import { Palette, Home, Sparkles, Users, Box, ChevronDown, Check, User } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 
 type Theme = 'theme-dreamy' | 'theme-dark' | 'theme-minimalist';
@@ -29,6 +29,7 @@ const Navbar = ({ currentTheme, onThemeChange }: NavbarProps) => {
         { name: '内容社区', path: '/community', icon: Users },
         { name: '协作工作台', path: '/collab', icon: Users },
         { name: '进度追踪', path: '/tracking', icon: Box },
+        { name: '个人中心', path: '/profile', icon: User },
     ];
 
     return (

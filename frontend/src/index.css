@@ -31,6 +31,7 @@
   --accent-hover: #c026d3;
   --accent-light: rgba(217, 70, 239, 0.15);
   --border-color: rgba(217, 70, 239, 0.2);
+  --accent-gradient: linear-gradient(135deg, #d946ef 0%, #4c1d95 100%);
 }
 
 /* 深色模式 Dark Theme */
@@ -47,6 +48,7 @@
   --accent-hover: #d8b4fe;
   --accent-light: rgba(192, 132, 252, 0.15);
   --border-color: rgba(255, 255, 255, 0.1);
+  --accent-gradient: linear-gradient(135deg, #c084fc 0%, #6366f1 100%);
 }
 
 /* 清新极简 Minimalist Theme */
@@ -63,6 +65,7 @@
   --accent-hover: #059669;
   --accent-light: rgba(16, 185, 129, 0.1);
   --border-color: #e2e8f0;
+  --accent-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 
 * {

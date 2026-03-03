@@ -1,82 +1,67 @@
-# DollCraft 娃娃定制与周边聚合平台
+# ArtChain - 艺术定制与创意协作平台
 
-DollCraft 是一款专为 BJD娃娃、棉花娃娃、黏土人、3D打印周边以及各种手作（如钩织、扭扭棒）设计的全链路定制与服务聚合平台。
+ArtChain 是一款专为 BJD 娃娃、棉花娃娃、手办、3D 打印周边以及各类手作（钩织、扭扭棒等）设计的全链路定制与服务协作平台。我们致力于打破定制圈的信息鸿沟，为创作者与玩家搭建透明、高效的连接桥梁。
 
-## 🌟 核心理念与目标
+## 🌟 核心理念
 
-当前的各种定制娃圈（如 BJD 组装、棉花娃娃私生等）面临着诸如：寻找各部件卖家繁琐、拼装排单期长（找猫娘、妆娘等）、进度不透明等痛点。
+在传统的定制圈（如 BJD 组装、棉花娃娃私生等）中，玩家常面临寻找卖家繁琐、工期不透明、进度反馈滞后等痛点。ArtChain 旨在通过数字化手段解决这些问题：
 
-DollCraft 旨在实现：
-- **定制透明化**：从选择素体 -> 头发 -> 妆娘面妆 -> 娃衣 -> 组装 -> 发货，打造一站式服务的流程式体验。
-- **金额与工期透明**：在每一步选择不同的合作创作者时，动态计算并展示各项价格与预计等候工期。
-- **创作者协同共创**：圈内创作者（卖家）可以入驻并共同合作完成一个订单，OC（Original Character）圈与定制圈可以无缝联合讨论。
+-   **全链路透明化**：从素体选购、面妆设计、服饰定制到最终组装发货，提供一站式的流程式追踪体验。
+-   **工期与价格看板**：实时动态计算各项服务的价格与预计等候工期，让每笔开销与等待都清晰可控。
+-   **创作者协同工作流**：支持多位创作者（妆师、缝纫师、原型师等）跨地域协作，共同完成复杂订单，实现真正的“共创”。
+-   **数字化 OC 资产管理**：为您的原创角色（Original Character）提供从虚拟设计到实物落地的全生命周期管理。
 
-## 🛠️ 技术栈 (Tech Stack)
+## 🛠️ 技术架构
 
-本项目采用现代化的前后端分离架构：
-- **前端 (Frontend)**: React 18 + Vite + TypeScript
-- **前端样式 (Styling)**: 原生全局 CSS (实现 Glassmorphism 毛玻璃质感与微动画)，支持多主题切换（梦幻粉紫、深色模式、清新极简）
-- **路由 (Routing)**: React Router DOM
-- **图标 (Icons)**: Lucide React
-- **后端 (Backend)**: FastAPI (Python) - 高性能的异步 RESTful API 框架
+本项目采用现代化、高性能的前后端分离方案：
 
-## 📁 项目结构 (Project Structure)
+-   **前端 (Frontend)**: React 19 + Vite + TypeScript
+    -   **设计系统**: 基于原生 CSS 实现的 Glassmorphism（毛玻璃）设计风格，内置三套精美主题。
+    -   **交互体验**: 支持微动画、自适应布局。
+    -   **工具库**: Lucide React (图标), React Router (导航)。
+-   **后端 (Backend)**: FastAPI (Python)
+    -   **性能**: 基于异步架构的极速 RESTful API 响应。
+    -   **文档**: 自动生成标准的 OpenAPI (Swagger) 交互式文档。
+
+## 📁 项目结构
 
 ```
 connect/
-├── backend/                # FastAPI 后端服务目录
-│   ├── main.py             # 后端应用入口点
-│   └── requirements.txt    # Python 依赖包清单
-├── frontend/               # React + Vite 前端目录
-│   ├── public/             # 前端静态资源 (图片等)
-│   ├── src/                # 前端 React 源代码
-│   │   ├── components/     # 可复用 UI 组件
-│   │   ├── pages/          # 各个页面级组件
-│   │   ├── App.tsx         # 应用主入口层与路由配置
-│   │   ├── main.tsx        # React 挂载点
-│   │   └── index.css       # 全局样式、设计系统与主题变量
-│   ├── index.html          # 前端页面模板
-│   ├── package.json        # 前端 Node.js 依赖管理
-│   └── vite.config.ts      # Vite 构建配置
+├── backend/                # FastAPI 后端服务
+│   ├── main.py             # API 入口与路由定义
+│   └── requirements.txt    # Python 依赖包
+├── frontend/               # React + Vite 前端应用
+│   ├── src/
+│   │   ├── components/     # 全局复用 UI 组件 (Navbar等)
+│   │   ├── pages/          # 业务逻辑页面 (Studio, Home等)
+│   │   ├── App.tsx         # 核心路由与主题控制
+│   │   └── index.css       # 全级设计系统与样式变量
+│   ├── public/             # 静态资源 (图片、图标)
+│   └── index.html          # 应用入口模板
 ```
 
-## 🚀 运行项目 (How to Run)
+## 🚀 快速启动
 
-### 1. 启动前端页面 (Frontend)
+### 1. 前端环境
 
-请确保你的电脑上安装了 [Node.js](https://nodejs.org/)。
+1. 进入前端目录：`cd frontend`
+2. 安装依赖：`npm install`
+3. 启动开发服务器：`npm run dev`
+4. 访问：`http://localhost:5173`
 
-```bash
-# 在项目根目录下打开终端，进入前端目录
-cd frontend
+### 2. 后端环境
 
-# 安装前端依赖
-npm install
+1. 进入后端目录：`cd backend`
+2. 创建并激活虚拟环境：
+   ```bash
+   python -m venv venv
+   .\venv\Scripts\activate  # Windows
+   source venv/bin/activate # Mac/Linux
+   ```
+3. 安装依赖：`pip install -r requirements.txt`
+4. 启动后端：`uvicorn main:app --reload`
+5. API 文档：`http://127.0.0.1:8000/docs`
 
-# 启动本地开发服务器
-npm run dev
-```
-然后可以在浏览器中访问终端输出的地址 (通常是 `http://localhost:5173`)。
+---
 
-### 2. 启动后端应用 (Backend)
-
-请确保你的电脑上安装了 Python 3.8 或更高版本。
-
-```bash
-# 进入后端目录
-cd backend
-
-# (推荐) 创建虚拟环境
-python -m venv venv
-# 激活虚拟环境 (Windows)
-.\venv\Scripts\activate
-# 激活虚拟环境 (Mac/Linux)
-# source venv/bin/activate
-
-# 安装后端依赖
-pip install -r requirements.txt
-
-# 启动 FastAPI 开发服务器
-uvicorn main:app --reload
-```
-后端启动后，可以在浏览器中访问 `http://127.0.0.1:8000/docs` 查看自动生成的 Swagger API 交互式接口文档。
+*ArtChain: Connect creativity, realize dreams.*
