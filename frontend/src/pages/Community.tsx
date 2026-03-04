@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { MessageSquare, Heart, Share2, Image as ImageIcon, Send, X } from 'lucide-react';
+import { MessageSquare, Heart, Share2, Image as ImageIcon, Send, X, Star } from 'lucide-react';
+import { useStars } from '../contexts/StarContext';
 
 interface Post {
     id: number;
@@ -12,6 +13,7 @@ interface Post {
 }
 
 export default function Community() {
+    const { starredPosts, toggleStar, isStarred } = useStars();
     const [posts, setPosts] = useState<Post[]>([]);
     const [newPostContent, setNewPostContent] = useState('');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -189,6 +191,26 @@ export default function Community() {
                                 }} className="hover-accent">
                                     <Share2 size={18} />
                                     <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>分享</span>
+                                </button>
+                                <button
+                                    onClick={() => toggleStar(post)}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        color: isStarred(post.id) ? 'var(--accent)' : 'var(--text-secondary)',
+                                        cursor: 'pointer',
+                                        marginLeft: 'auto',
+                                        transition: 'all 0.2s'
+                                    }}
+                                    className="hover-scale"
+                                >
+                                    <Star size={18} fill={isStarred(post.id) ? 'var(--accent)' : 'transparent'} />
+                                    <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>
+                                        {isStarred(post.id) ? '已收藏' : '收藏'}
+                                    </span>
                                 </button>
                             </div>
                         </div>

@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Settings, Share2, Grid, Clock, Star, Heart, MessageSquare, Camera, Check, X, ChevronRight, Info, Package, Hammer, Sparkles, CheckCircle2 } from 'lucide-react';
 
+import { useOrders } from '../contexts/OrderContext';
+import { useStars } from '../contexts/StarContext';
+
 interface UserProfile {
     username: string;
     avatar: string;
@@ -15,6 +18,7 @@ interface UserProfile {
     };
 }
 
+// Ensure Profile Order structure matches Context Order structure
 interface OrderStep {
     name: string;
     status: 'completed' | 'current' | 'pending';
@@ -43,9 +47,10 @@ interface Post {
 }
 
 export default function Profile() {
+    const { orders: globalOrders } = useOrders();
+    const { starredPosts } = useStars();
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [posts, setPosts] = useState<Post[]>([]);
-    const [orders, setOrders] = useState<Order[]>([]);
     const [activeTab, setActiveTab] = useState<'posts' | 'orders' | 'stars'>('posts');
     const [isLoading, setIsLoading] = useState(true);
 
@@ -64,16 +69,14 @@ export default function Profile() {
 
     const fetchData = async () => {
         try {
-            const [profileRes, postsRes, ordersRes] = await Promise.all([
+            const [profileRes, postsRes] = await Promise.all([
                 fetch('http://localhost:8000/api/user/profile'),
-                fetch('http://localhost:8000/api/user/posts'),
-                fetch('http://localhost:8000/api/user/orders')
+                fetch('http://localhost:8000/api/user/posts')
             ]);
 
-            const [profileData, postsData, ordersData] = await Promise.all([
+            const [profileData, postsData] = await Promise.all([
                 profileRes.json(),
-                postsRes.json(),
-                ordersRes.json()
+                postsRes.json()
             ]);
 
             setProfile(profileData);
@@ -83,7 +86,6 @@ export default function Profile() {
                 avatar: profileData.avatar
             });
             setPosts(postsData);
-            setOrders(ordersData);
         } catch (error) {
             console.error('Failed to fetch profile data:', error);
         } finally {
@@ -390,11 +392,23 @@ export default function Profile() {
 
                 {activeTab === 'orders' && (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(500px, 1fr))', gap: '1.5rem' }}>
-                        {orders.map(order => (
+                        {globalOrders.map(order => (
                             <div
                                 key={order.id}
                                 className="glass-card"
-                                onClick={() => setSelectedOrder(order)}
+                                onClick={() => setSelectedOrder({
+                                    id: order.id,
+                                    name: order.name,
+                                    status: order.status === 'processing' ? '制作中' : '已完成',
+                                    date: order.date,
+                                    image: order.img || '',
+                                    // Map Context Status to Profile Status
+                                    steps: order.steps.map(s => ({
+                                        name: s.label,
+                                        time: s.date,
+                                        status: s.status === 'active' ? 'current' : s.status
+                                    }))
+                                })}
                                 style={{
                                     display: 'flex',
                                     gap: '2rem',
@@ -407,7 +421,7 @@ export default function Profile() {
                                 }}
                             >
                                 <div style={{ width: '110px', height: '110px', borderRadius: '18px', overflow: 'hidden', border: '1px solid var(--glass-border)', boxShadow: 'var(--shadow-sm)' }}>
-                                    <img src={order.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={order.name} />
+                                    <img src={order.img} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={order.name} />
                                 </div>
                                 <div style={{ flex: 1 }}>
                                     <h3 style={{ fontSize: '1.3rem', margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>{order.name}</h3>
@@ -417,18 +431,18 @@ export default function Profile() {
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
                                         <div style={{ flex: 1, height: '4px', background: 'rgba(0,0,0,0.05)', borderRadius: '2px' }}>
                                             <div style={{
-                                                width: order.status === '已完成' ? '100%' : '60%',
+                                                width: order.status === 'delivered' ? '100%' : '60%',
                                                 height: '100%',
-                                                background: order.status === '已完成' ? '#10b981' : 'var(--accent)',
+                                                background: order.status === 'delivered' ? '#10b981' : 'var(--accent)',
                                                 borderRadius: '2px'
                                             }} />
                                         </div>
                                         <span style={{
                                             fontSize: '0.85rem',
                                             fontWeight: 600,
-                                            color: order.status === '已完成' ? '#10b981' : 'var(--accent)'
+                                            color: order.status === 'delivered' ? '#10b981' : 'var(--accent)'
                                         }}>
-                                            {order.status}
+                                            {order.status === 'processing' ? '制作中' : '已完成'}
                                         </span>
                                     </div>
                                 </div>
@@ -441,8 +455,40 @@ export default function Profile() {
                 )}
 
                 {activeTab === 'stars' && (
-                    <div style={{ textAlign: 'center', padding: '5rem', color: 'var(--text-secondary)' }}>
-                        暂无收藏内容
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
+                        {starredPosts.length > 0 ? (
+                            starredPosts.map(post => (
+                                <div key={post.id} className="glass-card" style={{ padding: '1.5rem', borderRadius: '24px' }}>
+                                    <div style={{ display: 'flex', gap: '0.8rem', marginBottom: '1rem' }}>
+                                        <img
+                                            src={post.avatar}
+                                            alt={post.author}
+                                            style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-card)', objectFit: 'cover' }}
+                                        />
+                                        <div>
+                                            <h4 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{post.author}</h4>
+                                            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{post.time}</span>
+                                        </div>
+                                    </div>
+                                    <p style={{ fontSize: '1.05rem', lineHeight: 1.6, marginBottom: '1rem' }}>{post.content}</p>
+                                    {post.image && (
+                                        <div style={{ borderRadius: '16px', overflow: 'hidden', marginBottom: '1rem' }}>
+                                            <img src={post.image} style={{ width: '100%', display: 'block' }} alt="Post" />
+                                        </div>
+                                    )}
+                                    <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--accent)' }}><Star size={16} fill="var(--accent)" /> 已收藏</span>
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Heart size={16} /> {post.likes}</span>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div style={{ textAlign: 'center', padding: '5rem', color: 'var(--text-secondary)', gridColumn: '1 / -1' }}>
+                                <Star size={48} style={{ opacity: 0.2, margin: '0 auto 1rem' }} />
+                                <div>暂无收藏内容</div>
+                                <div style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>去社区逛逛吧</div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

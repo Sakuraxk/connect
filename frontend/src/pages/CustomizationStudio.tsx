@@ -1,13 +1,16 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Check, ChevronRight, CheckCircle2, ShoppingBag } from 'lucide-react';
+import { useOrders } from '../contexts/OrderContext';
+import type { Order } from '../contexts/OrderContext';
 
 type Step = 'body' | 'faceup' | 'hair' | 'outfit' | 'review';
 const steps: { id: Step; label: string }[] = [
-    { id: 'body', label: '1. 基础素体' },
-    { id: 'faceup', label: '2. 专属妆面 (妆娘)' },
-    { id: 'hair', label: '3. 头发与眼片' },
-    { id: 'outfit', label: '4. 服饰搭配' },
-    { id: 'review', label: '5. 确认订单' },
+    { id: 'body', label: '基础素体' },
+    { id: 'faceup', label: '专属妆面 (妆娘)' },
+    { id: 'hair', label: '头发与眼片' },
+    { id: 'outfit', label: '服饰搭配' },
+    { id: 'review', label: '确认订单' },
 ];
 
 const mockData = {
@@ -32,7 +35,10 @@ const mockData = {
 };
 
 export default function CustomizationStudio() {
+    const navigate = useNavigate();
+    const { addOrder } = useOrders();
     const [currentStep, setCurrentStep] = useState<Step>('body');
+    const [reviewStep, setReviewStep] = useState<number>(1); // Sub-steps for the review modal (1, 2, or 3)
     const [selections, setSelections] = useState<Record<string, any>>({
         body: null,
         faceup: null,
@@ -48,6 +54,9 @@ export default function CustomizationStudio() {
         const currentIndex = steps.findIndex(s => s.id === currentStep);
         if (currentIndex < steps.length - 1) {
             setCurrentStep(steps[currentIndex + 1].id);
+            if (steps[currentIndex + 1].id === 'review') {
+                setReviewStep(1); // Reset review sub-step when entering review mode
+            }
         }
     };
 
@@ -117,6 +126,33 @@ export default function CustomizationStudio() {
         </div>
     );
 
+    const handleSubmitOrder = () => {
+        const { grandTotal } = calculateTotal();
+        const baseName = selections.body?.name || '未知素体';
+        const faceupName = selections.faceup ? ` • ${selections.faceup.name}` : '';
+        const orderName = `${baseName}${faceupName}`;
+
+        const newOrder: Order = {
+            id: `TRK-${Math.floor(Math.random() * 100000)}`,
+            name: orderName,
+            date: new Date().toISOString().split('T')[0],
+            status: 'processing',
+            total: grandTotal,
+            img: selections.body?.img || '/images/cotton_doll.png',
+            steps: [
+                { label: '订单已确认', date: 'Just now', time: '', status: 'completed' },
+                { label: '基础素体准备中', date: '待开始', time: '', status: 'pending' },
+                { label: '面部妆容绘制中', date: '待开始', time: '', status: 'pending' },
+                { label: '专属娃衣制作与试穿', date: '待开始', time: '', status: 'pending' },
+                { label: '组装与出厂质检', date: '待开始', time: '', status: 'pending' },
+                { label: '已发货', date: '待开始', time: '', status: 'pending' },
+            ]
+        };
+
+        addOrder(newOrder);
+        navigate('/tracking');
+    };
+
     return (
         <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
 
@@ -169,7 +205,7 @@ export default function CustomizationStudio() {
             <div className="glass-panel" style={{ flex: 1, padding: '2rem', minWidth: '300px', display: 'flex', flexDirection: 'column' }}>
                 {currentStep !== 'review' ? (
                     <>
-                        <h2 className="title-gradient" style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>选择 {steps.find(s => s.id === currentStep)?.label.split('.')[1]}</h2>
+                        <h2 className="title-gradient" style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>选择 {steps.find(s => s.id === currentStep)?.label}</h2>
                         <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>从优质且认证的创作者中挑选您的神仙太太，打造独一无二的作品。</p>
 
                         {renderOptions(mockData[currentStep as keyof typeof mockData])}
@@ -207,77 +243,165 @@ export default function CustomizationStudio() {
                         </div>
                     </>
                 ) : (
-                    <div style={{ padding: '2rem' }}>
-                        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-                            <CheckCircle2 size={64} color="var(--accent)" style={{ margin: '0 auto', marginBottom: '1.5rem' }} />
-                            <h2 className="title-gradient" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>准备就绪 (ArtChain 资金存管体系)</h2>
-                            <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', maxWidth: '600px', margin: '0 auto' }}>
-                                您的多方协作订单已生成。ArtChain 官方资金存管 (Escrow) 将在每一位创作者完成节点打卡（影像存证）并经您确认后，才会按比例解冻资金。让您的定制彻底告别翻车与卷款跑路。
-                            </p>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column', gap: '1.5rem', textAlign: 'center', padding: '3rem 0' }}>
+                        <div style={{
+                            width: '80px', height: '80px', borderRadius: '50%', background: 'var(--glass-bg)',
+                            border: '1px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: '0 0 20px rgba(138, 43, 226, 0.3)'
+                        }}>
+                            <CheckCircle2 size={40} color="var(--accent)" />
                         </div>
-
-                        <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
-                            {/* Cost Breakdown */}
-                            <div style={{ flex: 1, minWidth: '300px', background: 'var(--glass-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
-                                <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '1.5rem', color: 'var(--text-primary)' }}>拆单计费明细</h3>
-
-                                {Object.entries(calculateTotal().details).map(([key, item]) => (
-                                    <div key={key} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid var(--glass-border)' }}>
-                                        <div>
-                                            <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{item.name}</div>
-                                            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                                                {key === 'body' ? '素体/材料费' : '创作者手工费'}
-                                            </div>
-                                        </div>
-                                        <div style={{ fontWeight: 600 }}>${item.price}</div>
-                                    </div>
-                                ))}
-
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid var(--glass-border)' }}>
-                                    <div>
-                                        <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>ArtChain 担保与中转组装费 (5%)</div>
-                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>包含物流聚合与保险责任</div>
-                                    </div>
-                                    <div style={{ fontWeight: 600 }}>${calculateTotal().platformFee}</div>
-                                </div>
-
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', fontSize: '1.25rem', fontWeight: 700 }}>
-                                    <span>总计 (Grand Total)</span>
-                                    <span style={{ color: 'var(--accent)' }}>${calculateTotal().grandTotal}</span>
-                                </div>
-                            </div>
-
-                            {/* Payment Terms & Actions */}
-                            <div style={{ flex: 1, minWidth: '300px' }}>
-                                <div style={{ background: 'var(--glass-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--glass-border)', marginBottom: '1.5rem' }}>
-                                    <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '1.5rem', color: 'var(--text-primary)' }}>节点打款计划</h3>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <span style={{ color: 'var(--text-secondary)' }}>阶段 1: 创作者备料 (冻结)</span>
-                                            <span style={{ fontWeight: 600 }}>30% (${Math.round(calculateTotal().grandTotal * 0.3)})</span>
-                                        </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <span style={{ color: 'var(--text-secondary)' }}>阶段 2: 妆面/核心制作完工 (冻结)</span>
-                                            <span style={{ fontWeight: 600 }}>40% (${Math.round(calculateTotal().grandTotal * 0.4)})</span>
-                                        </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <span style={{ color: 'var(--text-secondary)' }}>阶段 3: 官方质检与发货后 (冻结)</span>
-                                            <span style={{ fontWeight: 600 }}>30% (${Math.round(calculateTotal().grandTotal * 0.3)})</span>
-                                        </div>
-                                    </div>
-                                    <p style={{ fontSize: '0.85rem', color: 'var(--accent)', marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        *资金将托管于 ArtChain 平台，仅在您确认节点存证后解冻。
-                                    </p>
-                                </div>
-                                <button className="btn-primary" style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
-                                    <ShoppingBag size={20} /> 托管资金并开启定制计划
-                                </button>
-                            </div>
-                        </div>
+                        <h2 className="title-gradient" style={{ fontSize: '2rem' }}>配置已完成</h2>
+                        <p style={{ color: 'var(--text-secondary)', maxWidth: '400px' }}>您已完成全部定制选项，订单已生成。您可以在弹出的确认窗口中核对并提交订单。</p>
+                        <button className="btn-secondary hover-scale" onClick={prevStep} style={{ marginTop: '1rem', padding: '0.8rem 2.5rem' }}>
+                            返回修改配置
+                        </button>
                     </div>
                 )}
             </div>
 
+            {/* Modal Overlay for Review Step */}
+            {currentStep === 'review' && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0,0,0,0.6)',
+                    backdropFilter: 'blur(12px)',
+                    zIndex: 1000,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0', // Full bleed, no padding around the modal panel
+                    animation: 'fadeIn 0.3s ease-out'
+                }}>
+                    <div className="glass-panel" style={{
+                        width: '100%',
+                        height: '100%',
+                        overflowY: 'auto', // Allow scrolling if screen is too small
+                        background: 'var(--bg-primary)',
+                        padding: '2rem', // Add a little margin on all sides of the box
+                        borderRadius: '0',
+                        position: 'relative',
+                        border: 'none',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'flex-start' // Changed from center to allow natural sizing from top
+                    }}>
+                        {/* Sub-Step 1: Introduction */}
+                        {reviewStep === 1 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, animation: 'fadeIn 0.3s ease-out' }}>
+                                <div style={{ textAlign: 'center', marginBottom: '2rem', flexShrink: 0 }}>
+                                    <CheckCircle2 size={56} color="var(--accent)" style={{ margin: '0 auto', marginBottom: '1rem' }} />
+                                    <h2 className="title-gradient" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>准备就绪 (ArtChain 资金存管体系)</h2>
+                                    <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', maxWidth: '800px', margin: '0 auto', lineHeight: 1.5 }}>
+                                        您的多方协作订单已生成。ArtChain 官方资金存管 (Escrow) 将在每一位创作者完成节点打卡（影像存证）并经您确认后，才会按比例解冻资金。让您的定制彻底告别翻车与卷款跑路。
+                                    </p>
+                                </div>
+                                <button className="btn-primary" onClick={() => setReviewStep(2)} style={{ padding: '1rem 3rem', fontSize: '1.1rem', borderRadius: '12px' }}>
+                                    开始确认订单
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Sub-Step 2: Cost Breakdown */}
+                        {reviewStep === 2 && (
+                            <div style={{ display: 'flex', gap: '3rem', flexWrap: 'nowrap', alignItems: 'stretch', justifyContent: 'center', flex: 1, animation: 'fadeIn 0.3s ease-out', width: '100%', maxWidth: '1200px', margin: '0 auto', minHeight: 'min-content' }}>
+                                {/* Left Side: Itemized Breakdown */}
+                                <div style={{ flex: 2, background: 'var(--glass-bg)', padding: '2.5rem 3.5rem', borderRadius: '24px', border: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                    <h3 style={{ fontSize: '1.75rem', fontWeight: 600, marginBottom: '2.5rem', color: 'var(--text-primary)', textAlign: 'center' }}>拆单计费明细</h3>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                        {Object.entries(calculateTotal().details).map(([key, item]) => {
+                                            const percentage = Math.round((item.price / calculateTotal().grandTotal) * 100);
+                                            return (
+                                                <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1rem', borderBottom: '1px solid var(--glass-border)' }}>
+                                                    <div>
+                                                        <div style={{ fontWeight: 500, color: 'var(--text-primary)', fontSize: '1.15rem', marginBottom: '0.4rem' }}>{item.name}</div>
+                                                        <div style={{ fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
+                                                            {key === 'body' ? '素体/材料费' : '创作者手工费'}
+                                                        </div>
+                                                    </div>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.2rem' }}>
+                                                        <span style={{ fontWeight: 600, fontSize: '1.15rem' }}>${item.price}</span>
+                                                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{percentage}%</span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1rem', borderBottom: '1px solid var(--glass-border)' }}>
+                                            <div>
+                                                <div style={{ fontWeight: 500, color: 'var(--text-primary)', fontSize: '1.15rem', marginBottom: '0.4rem' }}>ArtChain 组装与保险费 (5%)</div>
+                                                <div style={{ fontSize: '0.95rem', color: 'var(--text-secondary)' }}>包含物流聚合与保险责任</div>
+                                            </div>
+                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.2rem' }}>
+                                                <span style={{ fontWeight: 600, fontSize: '1.15rem' }}>${calculateTotal().platformFee}</span>
+                                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                                    {Math.round((calculateTotal().platformFee / calculateTotal().grandTotal) * 100)}%
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Right Side: Total & Actions */}
+                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1.5rem', alignSelf: 'center' }}>
+                                    <div style={{ background: 'var(--glass-bg)', padding: '2.5rem', borderRadius: '24px', border: '1px solid var(--glass-border)' }}>
+                                        <div style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginBottom: '0.5rem' }}>总计</div>
+                                        <div style={{ color: 'var(--accent)', fontSize: '3rem', fontWeight: 700 }}>${calculateTotal().grandTotal}</div>
+                                    </div>
+
+                                    <button className="btn-secondary hover-scale" onClick={prevStep} style={{ width: '100%', padding: '1.25rem', fontSize: '1.15rem', borderRadius: '16px', background: 'transparent' }}>
+                                        返回修改配置
+                                    </button>
+                                    <button className="btn-primary" onClick={() => setReviewStep(3)} style={{ width: '100%', padding: '1.25rem', fontSize: '1.15rem', borderRadius: '16px' }}>
+                                        确认明细，下一步
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Sub-Step 3: Payment Plan */}
+                        {reviewStep === 3 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, animation: 'fadeIn 0.3s ease-out', width: '100%', maxWidth: '1000px', margin: '0 auto', minHeight: 'min-content' }}>
+                                <div style={{ width: '100%', background: 'var(--glass-bg)', padding: '3.5rem', borderRadius: '24px', border: '1px solid var(--glass-border)', marginBottom: '3rem', display: 'flex', flexDirection: 'column' }}>
+                                    <h3 style={{ fontSize: '1.75rem', fontWeight: 600, marginBottom: '2.5rem', color: 'var(--text-primary)', textAlign: 'center' }}>节点打款计划</h3>
+
+                                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '2rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+                                            <span style={{ color: 'var(--text-secondary)', fontSize: '1.15rem', whiteSpace: 'nowrap' }}>阶段 1: 创作者备料 <span style={{ fontSize: '0.95rem', opacity: 0.7 }}>(冻结)</span></span>
+                                            <span style={{ fontWeight: 600, fontSize: '1.25rem', whiteSpace: 'nowrap' }}>30% (${Math.round(calculateTotal().grandTotal * 0.3)})</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+                                            <span style={{ color: 'var(--text-secondary)', fontSize: '1.15rem', whiteSpace: 'nowrap' }}>阶段 2: 核心制作完工 <span style={{ fontSize: '0.95rem', opacity: 0.7 }}>(冻结)</span></span>
+                                            <span style={{ fontWeight: 600, fontSize: '1.25rem', whiteSpace: 'nowrap' }}>40% (${Math.round(calculateTotal().grandTotal * 0.4)})</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+                                            <span style={{ color: 'var(--text-secondary)', fontSize: '1.15rem', whiteSpace: 'nowrap' }}>阶段 3: 官方发货后 <span style={{ fontSize: '0.95rem', opacity: 0.7 }}>(冻结)</span></span>
+                                            <span style={{ fontWeight: 600, fontSize: '1.25rem', whiteSpace: 'nowrap' }}>30% (${Math.round(calculateTotal().grandTotal * 0.3)})</span>
+                                        </div>
+                                    </div>
+
+                                    <p style={{ fontSize: '1rem', color: 'var(--accent)', marginTop: '2.5rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem', lineHeight: 1.5 }}>
+                                        *资金将托管于平台，仅在您确认节点存证后解冻。
+                                    </p>
+                                </div>
+                                <div style={{ display: 'flex', gap: '1.5rem', width: '100%' }}>
+                                    <button className="btn-secondary hover-scale" onClick={() => setReviewStep(2)} style={{ flex: 1, padding: '1.25rem', fontSize: '1.25rem', borderRadius: '16px', background: 'transparent' }}>
+                                        上一步
+                                    </button>
+                                    <button className="btn-primary" onClick={handleSubmitOrder} style={{ flex: 2, padding: '1.25rem', fontSize: '1.25rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', borderRadius: '16px' }}>
+                                        <ShoppingBag size={24} /> 托管资金并提交订单
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

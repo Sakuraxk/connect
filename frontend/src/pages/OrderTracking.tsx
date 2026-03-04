@@ -1,28 +1,55 @@
-import { CheckCircle2, Circle, Clock } from 'lucide-react';
+import { useState } from 'react';
+import { CheckCircle2, Circle, Clock, Package } from 'lucide-react';
+import { useOrders } from '../contexts/OrderContext';
 
 export default function OrderTracking() {
-    type TrackingStep = {
-        label: string;
-        date: string;
-        time: string;
-        status: 'completed' | 'active' | 'pending';
-        maker?: string;
-        evidence?: string[];
-    };
+    const { orders } = useOrders();
+    const [selectedOrderId, setSelectedOrderId] = useState<string>(orders[0]?.id || '');
 
-    const steps: TrackingStep[] = [
-        { label: '订单已确认', date: 'Oct 12', time: '10:00 AM', status: 'completed' },
-        { label: '基础素体准备中', date: 'Oct 15', time: '2:30 PM', status: 'completed' },
-        { label: '面部妆容绘制中', date: 'Oct 18', time: 'In Progress', status: 'active', maker: 'Kiki Faceups (妆娘)', evidence: ['/images/faceup_kiki.png'] },
-        { label: '专属娃衣制作与试穿', date: '待开始', time: '', status: 'pending', maker: 'Lumina Outfits (娃衣)' },
-        { label: '组装与出厂质检', date: '待开始', time: '', status: 'pending' },
-        { label: '已发货', date: '待开始', time: '', status: 'pending' },
-    ];
+    const selectedOrder = orders.find(o => o.id === selectedOrderId) || orders[0];
+
+    if (!selectedOrder) {
+        return (
+            <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                <h2>暂无进行中的定制订单</h2>
+                <p>前往定制工作室开启您的第一个跨界联名定制吧！</p>
+            </div>
+        );
+    }
 
     return (
         <div style={{ width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
-            <h1 className="title-gradient" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>订单详情 #TRK-9824X</h1>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '3rem' }}>三分 BJD (1/3 Scale) • 暗黑哥特主题</p>
+            {orders.length > 1 && (
+                <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '1rem' }}>
+                    {orders.map(order => (
+                        <button
+                            key={order.id}
+                            onClick={() => setSelectedOrderId(order.id)}
+                            style={{
+                                padding: '1rem 1.5rem',
+                                background: selectedOrderId === order.id ? 'var(--accent)' : 'var(--glass-bg)',
+                                border: selectedOrderId === order.id ? 'none' : '1px solid var(--glass-border)',
+                                color: selectedOrderId === order.id ? 'white' : 'var(--text-primary)',
+                                borderRadius: '12px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.75rem',
+                                whiteSpace: 'nowrap',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            <Package size={18} />
+                            <div>
+                                <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>#{order.id}</div>
+                                <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>{order.status === 'processing' ? '制作中' : '已完成'}</div>
+                            </div>
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            <h1 className="title-gradient" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>订单详情 #{selectedOrder.id}</h1>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '3rem' }}>{selectedOrder.name}</p>
 
             <div className="glass-card" style={{ padding: '3rem' }}>
                 <div style={{ position: 'relative' }}>
@@ -37,11 +64,11 @@ export default function OrderTracking() {
                         background: 'var(--glass-border)'
                     }} />
 
-                    {steps.map((step, idx) => (
+                    {selectedOrder.steps.map((step, idx) => (
                         <div key={idx} style={{
                             display: 'flex',
                             gap: '2rem',
-                            marginBottom: idx === steps.length - 1 ? 0 : '3rem',
+                            marginBottom: idx === selectedOrder.steps.length - 1 ? 0 : '3rem',
                             position: 'relative',
                             opacity: step.status === 'pending' ? 0.5 : 1
                         }}>
