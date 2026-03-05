@@ -27,47 +27,52 @@ const Navbar = ({ currentTheme, onThemeChange }: NavbarProps) => {
         { name: '首页', path: '/', icon: Home },
         { name: '定制工作室', path: '/studio', icon: Sparkles },
         { name: '内容社区', path: '/community', icon: Users },
-        { name: '协作工作台', path: '/collab', icon: Users },
         { name: '进度追踪', path: '/tracking', icon: Box },
+        { name: '协作工作台', path: '/collab', icon: Users },
         { name: '个人中心', path: '/profile', icon: User },
     ];
 
     return (
         <header className="sticky top-0 z-50 w-full glass-panel" style={{ borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderRadius: 0 }}>
-            <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '4rem' }}>
+            <div className="container" style={{ display: 'grid', gridTemplateColumns: 'minmax(40px, 1fr) auto minmax(40px, 1fr)', alignItems: 'center', height: '4rem', padding: '0 1rem' }}>
 
-                {/* Logo */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Sparkles className="title-gradient" size={28} />
-                    <h1 className="title-gradient" style={{ fontSize: '1.5rem', margin: 0 }}>ArtChain</h1>
+                {/* Left empty spacer to push center to absolute center */}
+                <div></div>
+
+                {/* Center Cluster */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', justifySelf: 'center' }}>
+                    {/* Logo */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <img src="/logo.svg" alt="ArtChain Logo" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
+                    </div>
+
+                    {/* Desktop Navigation */}
+                    <nav style={{ display: 'flex', gap: '2rem', alignItems: 'center' }} className="hidden-mobile">
+                        {navLinks.map((link) => {
+                            const Icon = link.icon;
+                            return (
+                                <NavLink
+                                    key={link.path}
+                                    to={link.path}
+                                    style={({ isActive }) => ({
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        fontWeight: isActive ? 600 : 500,
+                                        color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
+                                        transition: 'color var(--transition-fast)'
+                                    })}
+                                >
+                                    <Icon size={18} />
+                                    {link.name}
+                                </NavLink>
+                            );
+                        })}
+                    </nav>
                 </div>
 
-                {/* Desktop Navigation */}
-                <nav style={{ display: 'flex', gap: '2rem', alignItems: 'center' }} className="hidden-mobile">
-                    {navLinks.map((link) => {
-                        const Icon = link.icon;
-                        return (
-                            <NavLink
-                                key={link.path}
-                                to={link.path}
-                                style={({ isActive }) => ({
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                    fontWeight: isActive ? 600 : 500,
-                                    color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
-                                    transition: 'color var(--transition-fast)'
-                                })}
-                            >
-                                <Icon size={18} />
-                                {link.name}
-                            </NavLink>
-                        );
-                    })}
-                </nav>
-
-                {/* Custom Theme Selector */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                {/* Custom Theme Selector (Right side) */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifySelf: 'end' }}>
                     <div style={{ position: 'relative' }} className="desktop-theme-selector" ref={dropdownRef}>
                         <button
                             onClick={() => setIsThemeDropdownOpen(!isThemeDropdownOpen)}

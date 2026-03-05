@@ -24,14 +24,16 @@
   --glass-bg: rgba(255, 255, 255, 0.45);
   --glass-border: rgba(255, 255, 255, 0.8);
   --surface-bg: rgba(255, 255, 255, 0.8);
-  --text-primary: #4c1d95;
-  --text-secondary: #7e22ce;
-  --text-muted: #a855f7;
+  --text-primary: #1e293b;
+  /* Deep slate slate/charcoal instead of purple/pink */
+  --text-secondary: #475569;
+  --text-muted: #64748b;
   --accent: #d946ef;
+  /* Keep accent for buttons/gradients pink, but NOT regular text */
   --accent-hover: #c026d3;
-  --accent-light: rgba(217, 70, 239, 0.15);
-  --border-color: rgba(217, 70, 239, 0.2);
-  --accent-gradient: linear-gradient(135deg, #d946ef 0%, #4c1d95 100%);
+  --accent-light: rgba(217, 70, 239, 0.2);
+  --border-color: rgba(217, 70, 239, 0.3);
+  --accent-gradient: linear-gradient(135deg, #c026d3 0%, #3b0764 100%);
 }
 
 /* 深色模式 Dark Theme */

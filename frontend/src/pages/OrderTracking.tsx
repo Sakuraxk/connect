@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { CheckCircle2, Circle, Clock, Package } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, Package, MessageCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useOrders } from '../contexts/OrderContext';
 
 export default function OrderTracking() {
     const { orders } = useOrders();
     const [selectedOrderId, setSelectedOrderId] = useState<string>(orders[0]?.id || '');
+    const navigate = useNavigate();
 
     const selectedOrder = orders.find(o => o.id === selectedOrderId) || orders[0];
 
@@ -48,8 +50,18 @@ export default function OrderTracking() {
                 </div>
             )}
 
-            <h1 className="title-gradient" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>订单详情 #{selectedOrder.id}</h1>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '3rem' }}>{selectedOrder.name}</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '3rem' }}>
+                <div>
+                    <h1 className="title-gradient" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>订单详情 #{selectedOrder.id}</h1>
+                    <p style={{ color: 'var(--text-secondary)' }}>{selectedOrder.name}</p>
+                </div>
+                <button
+                    className="btn-primary"
+                    onClick={() => navigate(`/collab?orderId=${selectedOrder.id}&orderName=${encodeURIComponent(selectedOrder.name)}`)}
+                >
+                    <MessageCircle size={18} /> 进入协作群
+                </button>
+            </div>
 
             <div className="glass-card" style={{ padding: '3rem' }}>
                 <div style={{ position: 'relative' }}>
@@ -96,7 +108,44 @@ export default function OrderTracking() {
                                             {step.label}
                                         </h3>
                                         {step.maker && (
-                                            <p style={{ color: 'var(--accent)', fontSize: '0.9rem', marginTop: '0.25rem' }}>当前负责人: {step.maker}</p>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                                <div style={{
+                                                    width: '24px', height: '24px', borderRadius: '50%',
+                                                    background: (step.status === 'active' || step.status === 'completed') ? 'var(--accent)' : 'var(--glass-border)',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    color: (step.status === 'active' || step.status === 'completed') ? 'white' : 'var(--text-secondary)',
+                                                    fontSize: '0.7rem', fontWeight: 600
+                                                }}>
+                                                    {step.maker.substring(0, 1)}
+                                                </div>
+                                                <p style={{ color: (step.status === 'active' || step.status === 'completed') ? 'var(--text-primary)' : 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                                                    {step.status === 'completed' ? '参与者' : '当前负责人'}: {step.maker}
+                                                    <span style={{ fontSize: '0.8rem', opacity: 0.8, marginLeft: '0.5rem' }}>
+                                                        {(step.status === 'active' || step.status === 'completed') ? '(已进群)' : '(未进群)'}
+                                                    </span>
+                                                </p>
+                                                {(step.status === 'active' || step.status === 'completed') && (
+                                                    <button
+                                                        onClick={() => navigate(`/collab?dmCreator=${encodeURIComponent(step.maker || '')}`)}
+                                                        style={{
+                                                            background: 'none',
+                                                            border: 'none',
+                                                            color: 'var(--accent)',
+                                                            cursor: 'pointer',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '0.25rem',
+                                                            fontSize: '0.85rem',
+                                                            marginLeft: '0.5rem',
+                                                            padding: '0.25rem 0.5rem',
+                                                            borderRadius: '4px',
+                                                        }}
+                                                        className="hover-bg-glass"
+                                                    >
+                                                        <MessageCircle size={14} /> 联系
+                                                    </button>
+                                                )}
+                                            </div>
                                         )}
                                         <div style={{ display: 'flex', gap: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
                                             <span>{step.date}</span>
