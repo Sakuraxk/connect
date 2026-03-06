@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { MessageSquare, Heart, Share2, Image as ImageIcon, Send, X, Star } from 'lucide-react';
+import { MessageSquare, Heart, Share2, Image as ImageIcon, Send, X, Star, MessageCircle } from 'lucide-react';
 import { useStars } from '../contexts/StarContext';
+import { useNavigate } from 'react-router-dom';
 
 interface Post {
     id: number;
@@ -13,12 +14,13 @@ interface Post {
 }
 
 export default function Community() {
-    const { starredPosts, toggleStar, isStarred } = useStars();
+    const { toggleStar, isStarred } = useStars();
     const [posts, setPosts] = useState<Post[]>([]);
     const [newPostContent, setNewPostContent] = useState('');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchPosts();
@@ -118,7 +120,29 @@ export default function Community() {
                                     onError={(e) => (e.currentTarget.src = 'https://api.dicebear.com/7.x/initials/svg?seed=' + post.author)}
                                 />
                                 <div>
-                                    <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{post.author}</h4>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                                        <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{post.author}</h4>
+                                        <button
+                                            onClick={() => navigate(`/collab?dmCreator=${encodeURIComponent(post.author)}`)}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                background: 'var(--accent-light)',
+                                                border: 'none',
+                                                color: 'var(--accent)',
+                                                cursor: 'pointer',
+                                                width: '32px',
+                                                height: '32px',
+                                                borderRadius: '50%',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            title="发起私聊"
+                                            className="hover-scale"
+                                        >
+                                            <MessageCircle size={16} />
+                                        </button>
+                                    </div>
                                     <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{post.time}</span>
                                 </div>
                             </div>

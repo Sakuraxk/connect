@@ -55,12 +55,6 @@ export default function OrderTracking() {
                     <h1 className="title-gradient" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>订单详情 #{selectedOrder.id}</h1>
                     <p style={{ color: 'var(--text-secondary)' }}>{selectedOrder.name}</p>
                 </div>
-                <button
-                    className="btn-primary"
-                    onClick={() => navigate(`/collab?orderId=${selectedOrder.id}&orderName=${encodeURIComponent(selectedOrder.name)}`)}
-                >
-                    <MessageCircle size={18} /> 进入协作群
-                </button>
             </div>
 
             <div className="glass-card" style={{ padding: '3rem' }}>

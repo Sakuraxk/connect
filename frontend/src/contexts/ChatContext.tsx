@@ -1,3 +1,4 @@
+/* @refresh reload */
 import { createContext, useContext, useState, type ReactNode } from 'react';
 
 // Define the shape of a single chat message
@@ -14,6 +15,7 @@ export interface ChatMessage {
     combinedTitle?: string;
     combinedSummary?: string;
     combinedMessages?: ChatMessage[];
+    type?: string;
 }
 
 // Map thread ID to its array of messages
@@ -25,6 +27,10 @@ interface ChatContextType {
     recallMessage: (threadId: string, messageId: string) => void;
     deleteMessage: (threadId: string, messageId: string) => void;
     clearHistory: (threadId: string) => void;
+    closedThreads: string[];
+    toggleThreadClosed: (threadId: string, closed: boolean) => void;
+    openedThreads: string[];
+    registerThread: (threadId: string) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -71,8 +77,22 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         }));
     };
 
+    const [closedThreads, setClosedThreads] = useState<string[]>([]);
+    const [openedThreads, setOpenedThreads] = useState<string[]>([]);
+
+    const toggleThreadClosed = (threadId: string, closed: boolean) => {
+        setClosedThreads(prev =>
+            closed ? [...new Set([...prev, threadId])] : prev.filter(id => id !== threadId)
+        );
+    };
+
+    const registerThread = (threadId: string) => {
+        if (!threadId) return;
+        setOpenedThreads(prev => prev.includes(threadId) ? prev : [...prev, threadId]);
+    };
+
     return (
-        <ChatContext.Provider value={{ chatHistory, addMessage, recallMessage, deleteMessage, clearHistory }}>
+        <ChatContext.Provider value={{ chatHistory, addMessage, recallMessage, deleteMessage, clearHistory, closedThreads, toggleThreadClosed, openedThreads, registerThread }}>
             {children}
         </ChatContext.Provider>
     );
